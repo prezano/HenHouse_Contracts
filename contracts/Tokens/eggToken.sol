@@ -41,4 +41,8 @@ contract EggToken is ERC20, Ownable {
         transferFrom(msg.sender, _to, _amount);
         _burn(_to, _amount);
     }
+
+    function burn(uint256 amount) public onlyHenHouse {
+        _burn(_msgSender(), amount);
+    }    
 }
