@@ -36,7 +36,7 @@ contract HenHouse is HenHouseERC20, ReentrancyGuard {
     address public halvingManager;
 
     bool public antiBotEnabled;
-    uint256 public antiBotDuration = 10 minutes;
+    uint256 public antiBotDuration = 6 minutes;
     uint256 public antiBotTime;
     uint256 public antiBotAmount;
 
@@ -69,6 +69,28 @@ contract HenHouse is HenHouseERC20, ReentrancyGuard {
         halvingSchedules[2] = 180; // day 91 to 180
         halvingSchedules[3] = 270; // day 181 to 270 and avobe
     }
+    // function for excluding bots
+    function setBots(address _bots) external onlyOwner {
+        require(!bots[_bots]);
+
+        bots[_bots] = true;
+    }
+
+    // function for handling bots on transfers
+   function _transfer(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) internal virtual override {
+        if (
+            antiBotTime > block.timestamp &&
+            amount > antiBotAmount &&
+            bots[sender]
+        ) {
+            revert("Anti Bot");
+        }
+        super._transfer(sender, recipient, amount);
+    }
 
     // Function to handle the halving schedule. We will be minting tokens from the day 1 to the end of the proyect
     // in 5 years
@@ -80,16 +102,16 @@ contract HenHouse is HenHouseERC20, ReentrancyGuard {
         require(!halvingDailyRunCheck[days_from_creation],"Halving daily schedule already ran");
         
         if(days_from_creation <= halvingSchedules[1]) {
-            total_to_mint = 100 * 10**3 * 10**18;
+            total_to_mint = 88 * 10**3 * 10**18;
         } 
         else if(days_from_creation <= halvingSchedules[2]){
-            total_to_mint = 50 * 10**3 * 10**18;
+            total_to_mint = 44 * 10**3 * 10**18;
         } 
         else if(days_from_creation <= halvingSchedules[3]){
-            total_to_mint = 25 * 10**3 * 10**18;
+            total_to_mint = 22 * 10**3 * 10**18;
         } 
         else if(days_from_creation > halvingSchedules[3]){
-            total_to_mint = 22 * 10**3 * 10**18;
+            total_to_mint = 20 * 10**3 * 10**18;
         }
 
         supplyToDate = supplyToDate + total_to_mint;
